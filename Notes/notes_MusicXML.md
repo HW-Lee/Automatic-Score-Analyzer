@@ -110,7 +110,7 @@ MusicXML是基於XML規定的一種格式，所以最上面需要加一行XML所
 	"http://www.musicxml.org/dtds/partwise.dtd">
 ```
 
-這一行表示我們正在使用MusicXML，特別是`partwise`的樂譜（每一個小節都被包在一個`part`裡面）。上面的 `PUBLIC` 關鍵字是要引入DTD的位置，後面的URL只是某一個網址。大部份需要讀取MusicXML檔案的應用程式都必須下載一份 MusicXML DTDs 到自己的電腦上。直接使用XML parser而非直接使用網路去讀取。
+這一行表示我們正在使用MusicXML，特別是 partwise 的樂譜（每一個小節都被包在一個`part`裡面）。上面的 `PUBLIC` 關鍵字是要引入DTD的位置，後面的URL只是某一個網址。大部份需要讀取MusicXML檔案的應用程式都必須下載一份 MusicXML DTDs 到自己的電腦上。直接使用XML parser而非直接使用網路去讀取。
 
 如果應用程式需要驗證的是MusicXML XSD而非DTD的話，你也可以使用XML parser去達成。當寫成一份MusicXML的檔案時，加一行DOCTYPE使應用程式在解析一個MusicXML檔案的時候，更簡單直觀（直接顯示是基於DTD還是XSD的檔案）。
 
@@ -242,12 +242,80 @@ The `duration` element should reflect the intended duration, not a longer or sho
 當然還有許多必須注意的小問題，比方說一個`pitch`只能夠含有一個`step`跟`octave`，為了要解決這個問題，通常會選擇用 **限定屬性間該有的順序** 來當作解決辦法。因此在MusicXML的格式當中，屬性間的排列順序相當重要。DTD就必須有一套明確的順序規定，但在入門中將不會著墨。
 
 <h id="tut_the_struct_of_musicxml_files" />
-### The Structure Of MusicXML Files
+### The Structure of MusicXML Files
 [Webpage: The Structure of MusicXML Files](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____2)
+
+#### Adapting Musical Scores to a Hierarchy
+
+假設今天一段樂譜，是給兩個以上的人演奏的，此時樂譜就可以分成每一個人各自的部分，而每一個人要演奏的內容又是好幾個小節所構成。對應XML的格式，是將資料 **以上到下的層級概念** 去做表示 (hierachy)，但是從樂譜的特性上來看，並不是只有從屬關係，而是像一個 **晶格** 的架構。所以我們要怎麼用XML的方式去合理表現 (reconcile) 樂譜？究竟是應該要將同個人的演奏內容分開來表示，還是以同個小節多個人所要演奏的內容，來當作表現的格式？
+
+答案其實是 **因應用而異** 。身為一位音樂認知專家和 [Humdrum](http://www.musiccog.ohio-state.edu/Humdrum/) 的發明人 David Huron 則建議我們必須能夠活用兩種的表現方式，並且可以流暢的在兩者之間轉換。
+
+對應到上面所提到的 partwise/timewise，這也就是為什麼MusicXML會定義兩種不同結構的 DTDs，兩種各有自己的根 (root element)：
+
+1. `<score-partwise>`
+
+	資料列舉方式會以 **part** 做區隔 (primary) ，其包含多個 **小節** 資訊。
+
+2. `<score-timewise>`
+
+	資料列舉方式會以 **小節** 做區隔 (primary) ，其包含多個 **part** 資訊。
+	
+然而，如果是MusciXML XSD格式的檔案，就會同時包含這兩種根。
+
+<br>
+雖然要使用MusicXML的人必須熟悉兩種表現方式，但就像一般的軟體專案，為了讓所有相關的人都能夠專心於自己最關注的部分/領域，勢必是要一套能夠往返兩種表示方式的翻譯軟體。MusicXML當然有提供這項服務，分別是兩個XSLT的檔案 (stylesheet)：
+
+1. `parttime.xsl`: from `<score-partwise>` to `<score-timewise>`
+
+2. `timepart.xsl`: from `<score-timewise>` to `<score-partwise>`
+
+<br>
+一個應用程式在解析MusicXML的時候必須要可以選擇以哪一種表現方式當作單位，並且確認檔案符合格式（i.e. document type）。如果符合正確的根 (root element) 就直接解析，否則就用XSLT轉換成正確的格式以後再做解析，如果都不是上述的兩種格式，就停止程序並且回傳錯誤資訊。
+
+當要將音樂資訊輸出成MusicXML檔案的時候，就簡單的就自己所需的格式去寫入，讀取的問題就丟給讀檔的應用吧！如果今天是 2-D 的資訊（不負責舉例：合唱譜），則兩種寫法的難度跟複雜程度是差不多的，這時候可以考慮使用 partwise 格式。大部份的MusicXML軟體都是使用 partwise ，所以如果兩者之間沒有很顯著的輸出難度差異，就可以考慮用 partwise 去降低其他應用在讀取時多了一個轉譯所消耗的時間。
 
 <h id="tut_top_level_doc_elements" />
 ### Top-Level Document Elements
 [Webpage: Top-Level Document Elements](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-2.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____3)
+
+The `score.mod` file defines the basic structure of a MusicXML file. The primary definition of the file is contained in these lines:
+
+```
+<![ %partwise; [
+<!ELEMENT score-partwise (%score-header;, part+)>
+<!ELEMENT part (measure+)>
+<!ELEMENT measure (%music-data;)>
+]]>
+<![ %timewise; [
+<!ELEMENT score-timewise (%score-header;, measure+)>
+<!ELEMENT measure (part+)>
+<!ELEMENT part (%music-data;)>
+]]>
+```
+
+The `%partwise`; and `%timewise`; entities are set in the top-level DTDs `partwise.dtd` and `timewise.dtd`. The `<![` lines indicate a conditional clause like the #ifdef statement in C. So if `partwise.dtd` is used, the `<score-partwise>` element is defined, while if `timewise.dtd` is used, the `<score-timewise>` element is defined.
+
+You can see that the only difference between the two formats is the way that the part and measure elements are arranged. A score-partwise document contains one or more part elements, and each part element contains one or more measure elements. The score-timewise document reverses this ordering.
+
+In either case, the lower-level elements are filled with a music-data entity. This contains the actual music in the score, and is defined as:
+
+```
+<!ENTITY % music-data
+	"(note | backup | forward | direction | attributes |
+	harmony | figured-bass | print | sound | barline | 
+	grouping | link | bookmark)*">
+```
+
+In addition, each MusicXML file contains a `%score-header`; entity, defined as:
+
+```
+<!ENTITY % score-header
+	"(work?, movement-number?, movement-title?,
+	identification?, defaults?, credit*, part-list)">
+```
+
+We will now look at the score-header entity in more detail. If the example in the preceding "Hello World" section gave you enough information, you may want to skip ahead to the next section that starts describing music-data.
 
 <h id="tut_the_score_header_entity" />
 ### The Score Header Entity
