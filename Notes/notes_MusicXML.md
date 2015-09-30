@@ -279,7 +279,7 @@ The `duration` element should reflect the intended duration, not a longer or sho
 ### Top-Level Document Elements
 [Webpage: Top-Level Document Elements](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-2.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____3)
 
-The `score.mod` file defines the basic structure of a MusicXML file. The primary definition of the file is contained in these lines:
+基本的MusicXML檔案結構在`score.mod`裡面有定義，以下是原始的定義內容：
 
 ```
 <![ %partwise; [
@@ -294,11 +294,11 @@ The `score.mod` file defines the basic structure of a MusicXML file. The primary
 ]]>
 ```
 
-The `%partwise`; and `%timewise`; entities are set in the top-level DTDs `partwise.dtd` and `timewise.dtd`. The `<![` lines indicate a conditional clause like the #ifdef statement in C. So if `partwise.dtd` is used, the `<score-partwise>` element is defined, while if `timewise.dtd` is used, the `<score-timewise>` element is defined.
+`<![`跟`]]>`可以看成是`#ifdef`之類的條件判斷，所以上面的內容主要分成 `partwise.dtd` 以及 `timewise.dtd`。如果使用`partwise.dtd`，則`<score-parwise>`會被定義，反之則`<score-timewise>`被定義。
 
-You can see that the only difference between the two formats is the way that the part and measure elements are arranged. A score-partwise document contains one or more part elements, and each part element contains one or more measure elements. The score-timewise document reverses this ordering.
+兩者之間的不同只有`part`跟`measure`的結構順序差別，所以可以從此看出`socore-partwise`是以多個`part`拼成，而每一個`part`涵蓋許多`measure`資訊；`score-timewise`反之。
 
-In either case, the lower-level elements are filled with a music-data entity. This contains the actual music in the score, and is defined as:
+不管是哪一種情形，較低階層的部分都包含音樂的資訊，代表著音樂在樂譜中真實的樣子，以下是相關定義：
 
 ```
 <!ENTITY % music-data
@@ -307,7 +307,7 @@ In either case, the lower-level elements are filled with a music-data entity. Th
 	grouping | link | bookmark)*">
 ```
 
-In addition, each MusicXML file contains a `%score-header`; entity, defined as:
+除此之外，每一個MusicXML檔案都會有一的`%score-header`，形式如下：
 
 ```
 <!ENTITY % score-header
@@ -317,13 +317,103 @@ In addition, each MusicXML file contains a `%score-header`; entity, defined as:
 
 We will now look at the score-header entity in more detail. If the example in the preceding "Hello World" section gave you enough information, you may want to skip ahead to the next section that starts describing music-data.
 
+（還是無法理解這個header的細節，但至少可以看得出來它會列舉`part-list`，大概可以猜測是`score-partwise`）
+
+
 <h id="tut_the_score_header_entity" />
 ### The Score Header Entity
 [Webpage: The Score Header Entity](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-3.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____4)
 
+The score header contains some basic metadata about a musical score, such as the title and composer. It also contains the part-list, which lists all the parts or instruments in a musical score.
+
+As an example, take our MusicXML encoding of "Mut," the 22nd song from Franz Schubert's song cycle Winterreise. Here is a sample score header for that work:
+
+
+```
+<work>
+	<work-number>D. 911</work-number>
+	<work-title>Winterreise</work-title>
+</work>
+
+<movement-number>22</movement-number>
+<movement-title>Mut</movement-title>
+
+<identification>
+	<creator type="composer">Franz Schubert</creator>
+	<creator type="poet">Wilhelm Müller</creator>
+	<rights>Copyright © 2001 Recordare LLC</rights>
+	<encoding>
+		<encoding-date>2002-02-16</encoding-date>
+		<encoder>Michael Good</encoder>
+		<software>Finale 2002 for Windows</software>
+		<encoding-description>MusicXML 1.0 example</encoding-description>
+	</encoding>
+	<source>Based on Breitkopf &amp; Härtel edition of 1895</source>
+</identification>
+
+<part-list>
+	<score-part id="P1">
+		<part-name>Singstimme.</part-name>
+	</score-part>
+	<score-part id="P2">
+		<part-name>Pianoforte.</part-name>
+	</score-part>
+</part-list>
+```
+
+一個score-header共有五個頂層的元素：
+
+* work (optional)
+
+	總之，就是很像大型專案的子專案號跟子專案名稱。如果想要顯示所有其他的子專案的話可以使用 `opus` 去聯結其他的MusicXML。
+	
+* movement-number (optional)
+
+	這裡是表示這首曲子是24首裡面的第22首。
+
+* movement-title (optional)
+
+	曲子的名稱。
+
+* identification (optional)
+
+	紀錄作者（包含音樂的作者以及編碼的作者/軟體）。
+
+* part-list (required)
+
+
+只有 part-list 是必要的，所以來看它的架構：
+
+```
+<part-list>
+	<score-part id="P1">
+		<part-name>Singstimme.</part-name>
+	</score-part>
+	<score-part id="P2">
+		<part-name>Pianoforte.</part-name>
+	</score-part>
+</part-list>
+```
+
+part-list 就像是一種“清單”，在這裡不會詳細顯示出每一個 part 裡面所真實涵有的音樂資訊，詳細的會在更底下才會敘述（以對應`id`的方式），`id`的賦值一般就是約定成俗的`"P1"`、`"P2"`，當然也可以自己定義，只要確保`id`不能重複就好。
+
+In addition to the part-name, there are many optional elements that can be included in a score-part:
+
+* An identification element, helpful if individual parts come from different sources.
+* A part-abbreviation element. Often, you will use the part-name for the name used at the start of the score, and the part-abbreviation for the abbreviated name used in succeeding systems.
+* A group element, used when different parts can be used for different purposes. In MuseData, for instance, there will often be different parts used for a printed score, a printed part, a MIDI sound file, or for data analysis.
+* One or more score-instrument elements, used to describe instrument sounds and virtual instrument settings, as well as to define multiple instruments within a score-part. This element serves as a reference point for MIDI instrument changes.
+* One or more midi-device elements for identifying the MIDI devices or ports that are being used in a multi-port configuration. Multiple devices let you get beyond MIDI's 16-channel barrier.
+* One or more midi-instrument elements, specifying the initial MIDI setup for each score-instrument within a part.
+
+
 <h id="tut_the_midi_compatible_part_of_musicxml" />
 ### The MIDI-Compatible Part of MusicXML
 [Webpage: The MIDI-Compatible Part of MusicXML](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML4-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____5)
+
+![](./resources/notes_MusicXML/tut4-1.png)
+
+![](./resources/notes_MusicXML/Tut4-2_306x191.png)
 
 <h id="tut_notation_basics_in_musicxml" />
 ### Notation Basics In MusicXML
