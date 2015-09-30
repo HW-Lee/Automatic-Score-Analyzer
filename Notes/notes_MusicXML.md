@@ -411,9 +411,282 @@ In addition to the part-name, there are many optional elements that can be inclu
 ### The MIDI-Compatible Part of MusicXML
 [Webpage: The MIDI-Compatible Part of MusicXML](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML4-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____5)
 
+一個MusicXML檔案主要有兩種類別的資料：
+
+1. 描述這個音樂 **聽起來** 如何，用來產生MIDI檔
+
+2. 描述這個音樂 **看起來** 如何，用來產生音樂編輯軟體 (e.g. Finale) 的GUI
+
+一般來說，會希望檔案中的資訊越精確越好。只有音樂 **聽起來** 的資訊是一定要在檔案中的，所以先從音樂的元素來做介紹：
+
+以下是 Gabriel Fauré 的 "Après un rêve" 前四小節：
+
 ![](./resources/notes_MusicXML/tut4-1.png)
 
+#### Attributes
+
+`attributes` 帶有許多資訊：
+
+* time signature
+
+* key signature
+
+* transpositions
+
+* clefs
+
+在此例中，`attributes`的內部被編成這樣：
+
+```
+<attributes>
+	<divisions>24</divisions>
+	<key>
+		<fifths>-3</fifths>
+		<mode>minor</mode>
+	</key>
+	<time>
+		<beats>3</beats>
+		<beat-type>4</beat-type>
+	</time>
+</attributes>
+```
+
+#### Divisions
+
+音符一般都是用 **分數 (fraction)** 的方式來敘述：
+
+* 全音符 (whole notes)
+* 二分音符 (half notes)
+* 四分音符 (quarter notes)
+* 八分音符 (eighth note)
+
+因此定義`divisions`來當作 **一個四分音符長度的量化標準** ，就可以將其他的音符都用同一種量尺來描述。
+
+`divisions`在MusicXML中是可以中途改變其值的，但是一般來說大部份的軟體在定義`divisions`的時候就會取最適當的數字（意即所有音符的長度都可以用整數表示，也就是取音符長度之中的最小公倍數）。在範例中的`divisions`設定`24`，讓 八分音符三連音 (triplet eighth notes) 以`8`為長度、而 十六分音符 (sixteenth notes) 以`6`為長度。
+
+#### Key
+
+`fifths`表示幾個升記號（正數）或幾個降記號（負數），`mode`代表大小調 (`major`|`minor`)。
+
+#### Time
+
+`beats`表示一個小節的拍數，`beat-type`表示以幾分音符為一拍。
+
+#### Transpose
+
+如果需要轉調的話，則可以在`attributes`加上這個屬性（一種首調的概念），分為三個屬性值：
+
+* `diatonic` (optional): 八度的位置的位移
+* `chromatic` (optional): 增減了幾個key (半音)
+* `octave-change` (optional): 移動幾個八度
+*  `double` (optional): 移動幾個十五度（兩個八度）
+
+假設小喇叭要將 C3 演奏成 Bb2，則可以這樣表示：
+
+```
+	<transpose>
+		<diatonic>-1</diatonic>
+		<chromatic>-2</chromatic>
+	</transpose>
+```
+
+* 八度的位置往下掉一個，所以`diatonic`為`-1`
+* 下降一個全音，所以`chromatic`為`-2`
+
+`diatonic`屬性有沒有，對於產生MIDI檔沒有影響，主要是在產生樂譜上比較方便且準確。（比方說合唱譜男高音，會使用高音譜記號但是會有一個8表示全部降八度）
+
+#### Pitch
+
+`pitch`/`duration`/`ties`/`lyrics`都會包含在`note`裡面，以下是樂譜中第一行第三小節的降E：
+
+```
+<note>
+	<pitch>
+		<step>E</step>
+		<alter>-1</alter>
+		<octave>5</octave>
+	</pitch>
+	<duration>24</duration>
+	<tie type="start"/>
+	<lyric>
+		<syllabic>end</syllabic>
+		<text>meil</text>
+		<extend/>
+	</lyric>
+</note>
+```
+
+MIDI檔中，每一個音高都是用一個數字來表示，而MusicXML則是分成三個部分：音調、升降、以及八度。這裡必須注意的是，此表示是表示 **聽起來** 而非 **看起來**，換句話說，就算譜上面沒有臨時記號 (accidental)，都必須要記得隨著調性做升降。`alter`屬性可以是整數也可以是浮點數，例如`1`表示升、`-1`表示降、`2`表示雙升、`-0.5`表示半降，但不是所有軟體都支援這類變化。
+
+如果是休息記號，則如以下的方式表示：
+
+```
+<note>
+	<rest/>
+	<duration>72</duration>
+</note>
+```
+
+休息三拍，在此例子就是全休止符。
+
+#### Duration
+
+音符的長度，以`divisions`為單位。
+
+#### Tied Notes
+
+連結線，`<tie type="start"/>`和`<tie type="stop"/>`是一對的，表示連結線的起始與結束。
+
+#### Chords
+
+音樂以音符來表示，而走向就由`duration`來驅動 (music counter)。但今天如果像是第二行第一小節的第一拍，鋼琴部分必須要三個音同時在第一拍出現，此時就需要`<chord/>`。
+
+在本例子的第二行，沒有比八分音符更加複雜的節奏出現，因此`divisions`設定是`2`，所以第一拍的和弦就可以這樣表示：
+
+```
+<note>
+	<pitch>
+		<step>C</step>
+		<octave>4</octave>
+	</pitch>
+	<duration>1</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>E</step>
+		<alter>-1</alter>
+		<octave>4</octave>
+	</pitch>
+	<duration>1</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>G</step>
+		<octave>4</octave>
+	</pitch>
+	<duration>1</duration>
+</note>
+```
+
+但如果今天和弦上的音長度不一，會建議使用 multi-part music 而非 chord，真的非得用的話，最長的那顆音必須在最上面。
+
+#### Lyrics
+
+TBC
+
+#### Multi-Part Music
+
+有些單音樂器（喇叭、長笛、人聲）的樂譜就可以很簡單的一顆音一顆音延續下去，當然也有一些多音樂器（鋼琴）就沒這麼單純，以下的例子是 Frederic Chopin's Prelude, Op. 28, No. 20 的第一小節：
+
 ![](./resources/notes_MusicXML/Tut4-2_306x191.png)
+
+如同前面所說的，音樂的走向會有一個計數器 (music counter)，如果想要表示第三拍的右手，勢必需要對於計數器有更大的控制能力：也就是`backup`跟`forward`。
+
+假設此例的`divisions`是`4`，將第三拍的右手分為兩個部分。舉例來說，Finale可能會將 G 跟 還原B 當成放在音軌2，其他的放在音軌1。音軌2的表示方法就會如下：
+
+```
+<backup>
+	<duration>16</duration>
+</backup>
+
+<forward>
+	<duration>8</duration>
+</forward>
+
+<note>
+	<pitch>
+		<step>G</step>
+		<octave>3</octave>
+	</pitch>
+	<duration>4</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>B</step>
+		<octave>3</octave>
+	</pitch>
+	<duration>4</duration>
+</note>
+
+<forward>
+	<duration>4</duration>
+</forward>
+```
+
+`backup`相當於倒轉，倒轉`16`個`duration`就是倒退兩拍，也就是此小節的頭；`forward`可以想成是休止符，所以下面的`forward`就是休息兩拍；後面接上 G 跟 還原B一拍，最後再休息一拍，完成音軌2的描述。
+
+也可以寫成：
+
+```
+<note>
+	<pitch>
+		<step>G</step>
+		<octave>3</octave>
+	</pitch>
+	<duration>4</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>B</step>
+		<octave>3</octave>
+	</pitch>
+	<duration>4</duration>
+</note>
+
+<backup>
+	<duration>4</duration>
+</backup>
+
+<note>
+	<pitch>
+		<step>E</step>
+		<alter>-1</alter>
+		<octave>4</octave>
+	</pitch>
+	<duration>3</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>G</step>
+		<octave>4</octave>
+	</pitch>
+	<duration>3</duration>
+</note>
+	
+<note>
+	<pitch>
+		<step>D</step>
+		<octave>4</octave>
+	</pitch>
+	<duration>1</duration>
+</note>
+
+<note>
+	<chord/>
+	<pitch>
+		<step>F</step>
+		<octave>4</octave>
+	</pitch>
+	<duration>1</duration>
+</note>
+```
+
+先 G 還原B持續一拍，然後`backup`一拍（回到G 還原B開始的位置），接上一個3/4拍的 降E G 跟 1/4拍的 D F。等效於分兩組：
+
+* G 跟 還原B 持續一拍
+* 降E 跟 G 持續3/4拍以後接著 D 跟 F
+
+如此也可以實現第一行第三拍的右手。
 
 <h id="tut_notation_basics_in_musicxml" />
 ### Notation Basics In MusicXML
