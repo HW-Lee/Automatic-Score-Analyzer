@@ -22,7 +22,7 @@ Most of documentation is too sophisticated to see through without taking any not
 
 
 
-<h id="what_is_musicxml" />
+<h1 id="what_is_musicxml" />
 ## What's MusicXML?
 [Webpage: What's MusicXML?](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML2-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____1)
 
@@ -37,7 +37,7 @@ MusicXML是一種用於 **攜帶/交換音樂資訊** 的標準、開放格式�
 
 MusicXML將一般的樂譜或者是一段音樂創作，包成一個規格化的資料結構，旨在讓音樂資料能夠 **更妥善地被保存** 、 **更快速的重建且編輯** ，以及最重要的 **能夠讓電腦看得懂（意即可以使用程式設計的方法，去更改創作的資訊，達到互動式的電腦輔助音樂服務）** 。
 
-<h id="musicxml_tutorial" />
+<h1 id="musicxml_tutorial" />
 ## MusicXML Tutorial
 [Webpage: MusicXML Tutorial](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#Tutorial.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____0)
 
@@ -46,7 +46,7 @@ MusicXML將一般的樂譜或者是一段音樂創作，包成一個規格化的
 此章節主要針對需要解析MusicXML檔案的軟體開發者。MusicXML有很多支援 **專業音樂軟體** 的特徵，縱然有許多細節需要細說，但就各人所需去了解部分章節即可。
 
 
-<h id="tut_hello_world_in_musicxml" />
+<h1 id="tut_hello_world_in_musicxml" />
 ### "Hello World" In MusicXML
 [Webpage: "Hello World" In MusicXML](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML2-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____1)
 
@@ -241,7 +241,7 @@ The `duration` element should reflect the intended duration, not a longer or sho
 
 當然還有許多必須注意的小問題，比方說一個`pitch`只能夠含有一個`step`跟`octave`，為了要解決這個問題，通常會選擇用 **限定屬性間該有的順序** 來當作解決辦法。因此在MusicXML的格式當中，屬性間的排列順序相當重要。DTD就必須有一套明確的順序規定，但在入門中將不會著墨。
 
-<h id="tut_the_struct_of_musicxml_files" />
+<h1 id="tut_the_struct_of_musicxml_files" />
 ### The Structure of MusicXML Files
 [Webpage: The Structure of MusicXML Files](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____2)
 
@@ -275,7 +275,7 @@ The `duration` element should reflect the intended duration, not a longer or sho
 
 當要將音樂資訊輸出成MusicXML檔案的時候，就簡單的就自己所需的格式去寫入，讀取的問題就丟給讀檔的應用吧！如果今天是 2-D 的資訊（不負責舉例：合唱譜），則兩種寫法的難度跟複雜程度是差不多的，這時候可以考慮使用 partwise 格式。大部份的MusicXML軟體都是使用 partwise ，所以如果兩者之間沒有很顯著的輸出難度差異，就可以考慮用 partwise 去降低其他應用在讀取時多了一個轉譯所消耗的時間。
 
-<h id="tut_top_level_doc_elements" />
+<h1 id="tut_top_level_doc_elements" />
 ### Top-Level Document Elements
 [Webpage: Top-Level Document Elements](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-2.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____3)
 
@@ -320,7 +320,7 @@ We will now look at the score-header entity in more detail. If the example in th
 （還是無法理解這個header的細節，但至少可以看得出來它會列舉`part-list`，大概可以猜測是`score-partwise`）
 
 
-<h id="tut_the_score_header_entity" />
+<h1 id="tut_the_score_header_entity" />
 ### The Score Header Entity
 [Webpage: The Score Header Entity](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML3-3.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____4)
 
@@ -407,7 +407,7 @@ In addition to the part-name, there are many optional elements that can be inclu
 * One or more midi-instrument elements, specifying the initial MIDI setup for each score-instrument within a part.
 
 
-<h id="tut_the_midi_compatible_part_of_musicxml" />
+<h1 id="tut_the_midi_compatible_part_of_musicxml" />
 ### The MIDI-Compatible Part of MusicXML
 [Webpage: The MIDI-Compatible Part of MusicXML](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML4-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____5)
 
@@ -421,7 +421,7 @@ In addition to the part-name, there are many optional elements that can be inclu
 
 以下是 Gabriel Fauré 的 "Après un rêve" 前四小節：
 
-![](./resources/notes_MusicXML/tut4-1.png)
+![](./resources/notes_MusicXML/Tut4-1.png)
 
 #### Attributes
 
@@ -688,23 +688,23 @@ TBC
 
 如此也可以實現第一行第三拍的右手。
 
-<h id="tut_notation_basics_in_musicxml" />
+<h1 id="tut_notation_basics_in_musicxml" />
 ### Notation Basics In MusicXML
 [Webpage: Notation Basics In MusicXML](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML5-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____6)
 
-<h id="tut_chord_symbs_and_diag" />
+<h1 id="tut_chord_symbs_and_diag" />
 ### Chord Symbols And Diagrams
 [Webpage: Chord Symbols And Diagrams](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML6-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____7)
 
-<h id="tut_tablature" />
+<h1 id="tut_tablature" />
 ### Tablature
 [Webpage: Tablature](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML7-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____8)
 
-<h id="tut_percussion" />
+<h1 id="tut_percussion" />
 ### Percussion
 [Webpage: Percussion](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML8-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____9)
 
-<h id="tut_compressed_mxl_files" />
+<h1 id="tut_compressed_mxl_files" />
 ### Compressed .MXL Files
 [Webpage: Compressed .MXL Files](http://www.musicxml.com/UserManuals/MusicXML/MusicXML.htm#TutMusicXML9-1.htm%3FTocPath%3DMusicXML%25203.0%2520Tutorial%7C_____10)
 
