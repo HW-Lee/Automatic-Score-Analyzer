@@ -34,34 +34,39 @@ def _run_length_coding(array_data=np.array([])):
     else:
         return None
 
+def _run_length_distribution(data):
+    # Aggregate RLC pairs
+    hist = Counter(data)
+
+    # Wrap unique elements and its corresponded count
+    # ((SET_ID, RUN_LENGTH), COUNT)
+    hist = zip(hist.keys(), hist.values())
+
+    # Splitting by sets (0/1)
+    # hist[0/1]: array of (RUN_LENGTH, COUNT) of the set 0/1
+    hist = map(lambda v: filter(lambda x: x[0][0] == v, hist), [0, 1])
+    hist = map(lambda v: map(lambda x: (x[0][1], x[1]), hist[v]), [0, 1])
+
+    # Sort by count in descending order
+    hist = map(lambda v: sorted(hist[v], key=lambda x: x[1], reverse=True), [0, 1])
+
+    return hist
+
+
 def staffline_info(data):
     # RLC at each column
     rl_per_col = map(_run_length_coding, data.transpose())
 
-    # Concatenating all pairs at every column
-    hist = reduce(lambda x, y: x + y, rl_per_col)
-
-    # Aggregate RLC pairs
-    hist = Counter(hist)
-
-    # Transform to key-value pairs
-    hist = zip(hist.keys(), hist.values())
-
-    # Splitting by RLC IDs
-    hist = map(lambda v: filter(lambda x: x[0][0] == v, hist), [0, 1])
-
-    # Sorting by count
-    hist = map(lambda v: sorted(hist[v], key=lambda x: x[1], reverse=True), [0, 1])
+    # Compute the distribution of run-lengths
+    hist = _run_length_distribution(reduce(lambda x, y: x+y, rl_per_col))
 
     # Staffline info
     # hist[v]: array of unique sets which contains a tuple and an integer
     #   0 -> for inactive run-length
     #   1 -> for active run-length
     #
-    # hist[v][0]: the set which contains the largest count
-    # hist[v][0][0]: the RLC pair of the set
-    # hist[v][0][0][1]: the RL-value of the RLC pair
-    staffline_width = hist[1][0][0][1]
-    staffline_space = hist[0][0][0][1]
+    # hist[v][0]: the set which contains the largest count (RUN_LENGTH, COUNT)
+    staffline_width = hist[1][0][0]
+    staffline_space = hist[0][0][0]
 
     return {"width": staffline_width, "space": staffline_space}
