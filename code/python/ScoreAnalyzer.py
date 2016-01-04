@@ -23,12 +23,18 @@ def _binarize_image(raw_image=np.array([]), thresh=.5, dtype=float):
 
 def _run_length_coding(array_data=np.array([])):
     if sum(array_data.shape) > 0:
-        
+        # Figure out all switched indices where the value of each index is different from the next value
+        # i.e. find all i where arr[i] != arr[i+1]
         switch_pts = [i for i, x in enumerate(map(lambda x, y: x != y, array_data[:-1], array_data[1:])) if x]
+
+        # Insert values such that the difference of switched indices is equal to run-length sequence
         switch_pts.insert(0, -1)
         switch_pts.append(len(array_data)-1)
 
+        # Get run-length sequence
         run_length_sequence = np.diff(switch_pts)
+
+        # Find out the corresponded set of each run-length
         sequence_id = (np.arange(len(run_length_sequence)) + array_data[0]) % 2
 
         # Each element consists of two values: (SET, RUN_LENGTH)
@@ -91,7 +97,7 @@ def _find_staffline_centers(col, width, space):
 
     return acc_offset[center_idx] + width/2
 
-def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.5):
+def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=1.):
     if len(arr) == 9:
         height = 5*width + 4*space
         if abs(arr[0] - width) / float(width) > err_thresh: return False
@@ -119,4 +125,9 @@ def staffline_info(data):
     staffline_width = hist[1][0][0]
     staffline_space = hist[0][0][0]
 
-    return {"width": staffline_width, "space": staffline_space}
+    # Staffline centers
+    rl_per_col = map(lambda x: np.array(x)[:, 1], rl_per_col)
+    staffline_centers = map(_find_staffline_centers, rl_per_col,
+                            [staffline_width]*len(rl_per_col), [staffline_space]*len(rl_per_col))
+
+    return {"width": staffline_width, "space": staffline_space, "centers": staffline_centers}
