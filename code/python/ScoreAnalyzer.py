@@ -131,3 +131,54 @@ def staffline_info(data):
                             [staffline_width]*len(rl_per_col), [staffline_space]*len(rl_per_col))
 
     return {"width": staffline_width, "space": staffline_space, "centers": staffline_centers}
+
+def _get_pts_set(centers):
+    # centers is an array where each element is an array of y indices which indicates possible staffline centers
+    # e.g.
+    # [
+    #     [ c[1][1], c[1][2], c[1][3] ],
+    #     [ c[2][1], c[2][2], c[2][3], c[2][4], c[2][5] ],
+    #                             .
+    #                             .
+    #                             .
+    #     [ c[k][1], ... , c[k][N_k] ],
+    #                             .
+    #                             .
+    #                             .
+    #     [ c[X][1], ... , c[X][N_X] ]
+    # ]
+    #
+    # Returns:
+    #     an array where each element is a 2-D points indicates the position of a possible staffline center
+
+    pts = []
+    for i, center in enumerate(centers):
+        pts += map(lambda c: [i, c], center)
+
+    return np.array(pts)
+
+def _find_lines_by_RANSAC(data_pts, Niter=1000, in_thresh=.5):
+    # Find lines by Randomly Sampled Consensus
+    #
+    # Returns:
+    #     a Niter-by-4 matrix where each row refers to a line candidate
+    #     and each row contains [slope, intercept, inset_cnt, x_range]
+
+    data_pts = np.array(data_pts)
+    samples = []
+    xlist = np.unique(data_pts[:, 0])
+
+    for _ in range(Niter):
+        rs_x = np.random.choice(xlist, 2, replace=False)
+        rs_y = np.array(map(lambda v: np.random.choice(centers[rs_x[v]], 1)[0], [0, 1]))
+
+        a = 1. * np.diff(rs_y)[0] / np.diff(rs_x)[0]
+        b = np.mean(rs_y - rs_x * a)
+
+        dist = abs( pts.dot(np.array([a, -1])) + b )
+        idces = [i for i, d in enumerate(dist) if d < in_thresh]
+        line_range = pts[idces[-1], 0] - pts[idces[0], 0]
+
+        samples += [[a, b, len(filter(lambda x: x < .5, dist)), line_range]]
+
+    return np.array(samples)
