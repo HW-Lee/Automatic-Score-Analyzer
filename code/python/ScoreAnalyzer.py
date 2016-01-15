@@ -95,7 +95,7 @@ def _find_staffline_centers(col, width, space):
 
     return acc_offset[center_idx] + width/2
 
-def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=1.):
+def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.9):
     if len(arr) == 9:
         height = 5*width + 4*space
         if abs(arr[0] - width) / float(width) > err_thresh: return False
@@ -223,7 +223,7 @@ def find_lines_RANSAC(centers, img_width, staffline_height, max_iter=10, ang_thr
         lines = sorted(lines, key=lambda x: x[2], reverse=True)
 
         lines = lines[:NRANSAC/10]
-        lines = filter(lambda line: line[3] > img_width * .5, lines)
+        lines = filter(lambda line: line[3] > img_width * .3, lines)
 
         if len(lines) > 0:
             # If there is no staffline has been detected yet, choose the first element of RANSAC results
