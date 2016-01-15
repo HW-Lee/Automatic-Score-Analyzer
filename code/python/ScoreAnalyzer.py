@@ -1,5 +1,3 @@
-import sys
-import os
 import numpy as np
 from scipy import misc
 from collections import Counter
@@ -228,7 +226,11 @@ def find_lines_RANSAC(centers, img_width, staffline_height, max_iter=10, ang_thr
         lines = filter(lambda line: line[3] > img_width * .5, lines)
 
         if len(lines) > 0:
-            a, b, _, _ = lines[0]
+            # If there is no staffline has been detected yet, choose the first element of RANSAC results
+            # otherwise choose the first element of detected stafflines
+            if len(stafflines) > 0: a, _ = stafflines[0]
+            else: a, _, _, _ = lines[0]
+
 
             # Note:
             # tan(t1 - t2) = (tan(t1) - tan(t2)) / (1 + tan(t1)tan(t2))
@@ -242,11 +244,11 @@ def find_lines_RANSAC(centers, img_width, staffline_height, max_iter=10, ang_thr
                 intercepts = np.array(map(lambda x: x[1], stafflines))
 
                 # Note:
-                # 
-                if sum(np.abs(intercepts - b) < staffline_height) == 0:
+                # to check if there is any overlapped region of some pair of lines
+                if sum(np.abs(intercepts - b) < staffline_height*1.5) == 0:
                     dist = np.abs(pts.dot(np.array([a, -1])) + b)
                     stafflines += [[a, b]]
-                    pts = pts[dist > staffline_height, :]
+                    pts = pts[dist > staffline_height*1.5, :]
 
         else:
             break
