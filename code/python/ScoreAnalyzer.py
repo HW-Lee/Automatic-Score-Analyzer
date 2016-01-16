@@ -95,7 +95,7 @@ def _find_staffline_centers(col, width, space):
 
     return acc_offset[center_idx] + width/2
 
-def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.9):
+def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.7):
     if len(arr) == 9:
         height = 5*width + 4*space
         if abs(arr[0] - width) / float(width) > err_thresh: return False
