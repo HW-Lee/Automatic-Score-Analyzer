@@ -223,7 +223,6 @@ def find_lines_RANSAC(centers, img_width, staffline_height, max_iter=10, ang_thr
         lines = sorted(lines, key=lambda x: x[2], reverse=True)
 
         lines = lines[:NRANSAC/10]
-        lines = filter(lambda line: line[3] > img_width * .3, lines)
 
         if len(lines) > 0:
             # If there is no staffline has been detected yet, choose the first element of RANSAC results
