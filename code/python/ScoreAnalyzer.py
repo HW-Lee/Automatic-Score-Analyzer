@@ -196,7 +196,7 @@ def _find_lines_by_RANSAC(data_pts, Niter=1000, in_thresh=.5):
 
     return np.array(samples)
 
-def find_lines_RANSAC(centers, img_width, staffline_height, max_iter=10, ang_thresh=0.01, NRANSAC=200):
+def find_lines_RANSAC(centers, staffline_height, max_iter=10, ang_thresh=0.01, NRANSAC=200):
     # Find lines by Randomly Sampled Consensus
     #
     # Returns:
