@@ -62,11 +62,11 @@ def find_lines_by_RANSAC(data_pts, Niter=1000, in_thresh=.5):
         idces = [i for i, d in enumerate(dist) if d < in_thresh]
         line_range = data_pts[idces[-1], 0] - data_pts[idces[0], 0]
 
-        samples += [[a, b, len(filter(lambda x: x < .5, dist)), line_range]]
+        samples += [[a, b, len(idces), line_range]]
 
     return np.array(samples)
 
-def find_lines_by_centers_RANSAC(centers, min_margin=0, max_iter=10, ang_thresh=0.01, NRANSAC=200):
+def find_lines_by_centers_RANSAC(centers, min_margin=0.5, max_iter=10, ang_thresh=0.01, NRANSAC=200):
     # Find lines by Randomly Sampled Consensus
     #
     # Returns:

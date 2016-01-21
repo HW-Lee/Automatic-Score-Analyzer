@@ -1,5 +1,5 @@
 import numpy as np
-from ScoreAnalyzer.runlength.rlcodec import *
+from ScoreAnalyzer.runlength.rlcodec import run_length_coding, run_length_distribution
 
 def _find_staffline_centers(col, width, space):
     # Check for existence of staffline
