@@ -14,6 +14,7 @@ def has_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_space
         height = 5*staffline_width + 4*staffline_space
         half_h = deskewed_data.shape[0]/2
 
+        # only search central region
         if height < half_h:
             deskewed_data = deskewed_data[half_h-height:half_h+height, :]
 
@@ -61,10 +62,19 @@ def _filter_staffline_per_col(col, staffline_width):
     return col
 
 def _filter_staffline_per_line(data, staffline_width):
+    # Eliminate pixels which possibly compose a line at a given column data
+    # Note that the size of the input data is very small such that only one line is contained in the data
+    #
+    # Returns:
+    #     processed data
+
+    # Clone the original data
     data = np.array(data)
+
+    # Process the data columnwisely
     width_repeat = [staffline_width] * data.shape[1]
-    data = np.array(map(_filter_staffline_per_col, data.transpose(), width_repeat))
-    data = np.array(data.transpose())
+    data = map(_filter_staffline_per_col, data.transpose(), width_repeat)
+    data = np.array(data).transpose()
 
     return data
 
