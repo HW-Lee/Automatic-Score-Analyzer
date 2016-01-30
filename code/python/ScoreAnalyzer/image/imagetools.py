@@ -1,17 +1,22 @@
 import numpy as np
 from scipy import misc
 
-def load(path, thresh=.5):
+def load(path, thresh=.5, reverse=True):
+    # Load an image with binarization
+    # reverse:
+    #   - T, blackset refers to active set
+    #   - F, whiteset refers to active set
+
     image = misc.imread(name=path, flatten=True)
-    image_rev = abs(image - 255.)
-    return binarize_image(raw_image=image_rev, thresh=thresh, dtype=float)
+    if reverse: image = abs(image - 255.)
+    return binarize_image(raw_image=image, thresh=thresh, dtype=float)
 
-def binarize(v=0, thresh=.5):
-    return v > 255.0*thresh
+def binarize(v=0, thresh=.5, max_value=255.):
+    return v > max_value*thresh
 
-def binarize_image(raw_image=np.array([]), thresh=.5, dtype=float):
+def binarize_image(raw_image=np.array([]), thresh=.5, max_value=255., dtype=float):
     if sum(raw_image.shape) > 0:
-        bin_image = map(binarize, raw_image, thresh*np.ones(raw_image.shape))
+        bin_image = map(lambda row: binarize(row, thresh=thresh, max_value=max_value), raw_image)
         bin_image = np.array(bin_image, dtype=dtype)
 
         return bin_image
@@ -51,7 +56,7 @@ def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, inter
         data_seg = data_seg[half_h-margin : half_h+margin, :]
 
         # After interpolation step, the image should be binarized again with a specific threshold
-        data_seg = binarize_image(data_seg, thresh=bin_thresh)
+        data_seg = binarize_image(data_seg, thresh=bin_thresh, max_value=np.max(data_seg.flatten()))
 
     return data_seg
 
