@@ -18,7 +18,7 @@ def binarize_image(raw_image=np.array([]), thresh=.5, dtype=float):
     else:
         return None
 
-def segment_by_line(data, line_params, margin, bin_thresh=.5):
+def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, interp="bilinear"):
     # Segment a sub-matrix from a matrix with a specific line equation and margin
     # 1. find the y-value of the line corresponded to horizontally center point
     # 2. segment the data with two horizontal lines where the y-values are y += margin, respectively
@@ -29,11 +29,10 @@ def segment_by_line(data, line_params, margin, bin_thresh=.5):
     #     b: intercept
     a, b = line_params
 
-    # Find the horizontally center x-value
-    half_w = int(np.floor(data.shape[1] / 2.))
-
     # Compute the corresponding y-value at the cut line
-    seg_y = int(round(a*half_w + b))
+    min_y, max_y = np.sort([ b, int(round(a*(data.shape[1]-1) + b)) ])
+    min_y = np.max([min_y-margin, 0])
+    max_y = np.min([max_y+margin, data.shape[0]-1])
 
     # Compute the angle between cut line and x-axis
     theta = np.arctan(a)
@@ -43,14 +42,20 @@ def segment_by_line(data, line_params, margin, bin_thresh=.5):
     #     the y-axis goes downward in images manner, rotating images counter-clockwisely
     #     is equivallent to rotating matrices clockwisely. Therefore, the ratation angle must not
     #     be added by negative sign.
-    data_seg = misc.imrotate(data[seg_y-margin : seg_y+margin, :], theta/np.pi * 180., interp="bilinear")
+    data_seg = data[min_y:max_y, :]
+    if deskew:
+        data_seg = misc.imrotate(data_seg, theta/np.pi * 180., interp=interp)
 
-    # After interpolation step, the image should be binarized again with a specific threshold
-    data_seg = binarize_image(data_seg, thresh=bin_thresh)
+        # Segment the data again
+        half_h = int(np.floor(data_seg.shape[0] / 2.))
+        data_seg = data_seg[half_h-margin : half_h+margin, :]
+
+        # After interpolation step, the image should be binarized again with a specific threshold
+        data_seg = binarize_image(data_seg, thresh=bin_thresh)
 
     return data_seg
 
-def segment_data(data, lines_params, margin, bin_thresh=.5):
+def segment_data(data, lines_params, margin, bin_thresh=.5, deskew=True, interp="bilinear"):
     # Segment the image into a couple of sub-images where each image only contains one de-skewed staffline
     #
     # Returns:
@@ -68,8 +73,10 @@ def segment_data(data, lines_params, margin, bin_thresh=.5):
     data_repeat = [data] * Nstafflines
     margin_repeat = [margin] * Nstafflines
     bin_thresh_repeat = [bin_thresh] * Nstafflines
+    deskew_repeat = [deskew] * Nstafflines
+    interp_repeat = [interp] * Nstafflines
 
     # Do segment operations with each line parameters
-    segments = map(segment_by_line, data_repeat, lines_params, margin_repeat, bin_thresh_repeat)
+    segments = map(segment_by_line, data_repeat, lines_params, margin_repeat, bin_thresh_repeat, deskew_repeat, interp_repeat)
 
     return segments
