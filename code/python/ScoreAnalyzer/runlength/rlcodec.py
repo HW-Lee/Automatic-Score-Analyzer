@@ -20,7 +20,7 @@ def run_length_coding(array_data=np.array([])):
         # Each element consists of two values: (SET, RUN_LENGTH)
         return zip(sequence_id, run_length_sequence)
     else:
-        return None
+        return np.array([])
 
 def run_length_distribution(data):
     # Aggregate RLC pairs

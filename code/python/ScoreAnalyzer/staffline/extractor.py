@@ -147,4 +147,4 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
 
         return (filterred, residual, y_idces)
     else:
-        return (None, None)
+        return (np.array([]), np.array([]), np.array([]))

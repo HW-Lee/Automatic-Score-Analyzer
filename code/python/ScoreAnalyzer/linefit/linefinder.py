@@ -114,7 +114,7 @@ def find_lines_by_centers_RANSAC(centers, min_margin=0.5, max_iter=10, ang_thres
 
                 # Note:
                 # to check if there is any overlapped region of some pair of lines
-                if sum(np.abs(intercepts - b) < min_margin) == 0:
+                if not (np.abs(intercepts - b) < min_margin).any():
                     dist = np.abs(pts.dot(np.array([a, -1])) + b)
                     results += [[a, b]]
                     pts = pts[dist > min_margin, :]

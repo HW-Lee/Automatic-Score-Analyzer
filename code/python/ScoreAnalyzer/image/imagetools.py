@@ -21,7 +21,7 @@ def binarize_image(raw_image=np.array([]), thresh=.5, max_value=255., dtype=floa
 
         return bin_image
     else:
-        return None
+        return np.array([])
 
 def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, interp="bilinear"):
     # Segment a sub-matrix from a matrix with a specific line equation and margin

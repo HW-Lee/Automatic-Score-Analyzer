@@ -48,7 +48,7 @@ def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.7):
 
         return reduce(lambda x, y: x and y, diff_rat < err_thresh)
     else:
-        return None
+        return False
 
 def staffline_info(data):
     # RLC at each column
