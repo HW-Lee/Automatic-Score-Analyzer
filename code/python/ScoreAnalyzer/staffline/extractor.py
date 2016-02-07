@@ -99,35 +99,28 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
         half_h = deskewed_data.shape[0]/2
 
         # Find positions where stafflines are located
-        # 1. Compute the projection onto y-axis
-        # 2. Find five values such that:
-        #       a. they induce top five highest projection
-        #       b. each distance between each pair is larger than staffline width
-        # 3. Sort these value in ascending order
+        # 1. Initial guess of staffline positions based on staffline width and space
+        # 2. Adjust positions such that the positions are indicated accurately
+        #
 
-        # Compute the projection onto y-axis
-        y_proj = np.sum(deskewed_data, axis=1).flatten()
-
-        # Sort the indices with corresponding projected values
-        y_idces = np.argsort(-y_proj)
-
-        # Filter the positions that exceed search region
-        y_idces = y_idces[y_idces < half_h+height]
-        y_idces = y_idces[y_idces > half_h-height]
-
-        for x in range(5):
-            # Filter all near enough positions to prevent from selecting same line twicely
-            mask = abs(y_idces - y_idces[x]) > staffline_width
-            mask[x] = True
-            y_idces = y_idces[mask]
-
-        # Select first five positions
-        # Note that it is sure that each position refers to different line
-        y_idces = y_idces[0:5]
-        y_idces = np.sort(y_idces)
-
-        # Segment lines to eliminate
+        # Initialization
         margin = int(round((staffline_width + staffline_space) / 2.))
+
+        # Initial guess
+        y_idces = np.array([-2, -1, 0, 1, 2]) * (staffline_width+staffline_space) + half_h
+
+        # Segment lines to adjust positions
+        horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces)
+
+        # Compute y-projection respectively
+        y_projs = map(lambda line: np.sum(line, axis=1).flatten(), horizlines)
+
+        # Find adjustment value respectively
+        y_adjs = map(lambda proj: round(np.argsort(-proj)[0]), y_projs)
+        y_adjs = np.array(y_adjs) - margin
+        y_idces += y_adjs
+
+        # Resegment lines to eliminate
         horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces)
 
         # Filter each line segment
@@ -140,7 +133,7 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
         # Overwrite the original data with processed segments
         for x in range(5):
             y = y_idces[x]
-            filterred[y-margin:y+margin, :] = horizlines_filterred[x]
+            filterred[y-margin:y+margin, :] *= horizlines_filterred[x]
 
         # Do subtraction to obtain residual
         residual = np.array(deskewed_data) - filterred
