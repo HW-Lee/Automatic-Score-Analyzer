@@ -1,5 +1,7 @@
 # Automatic Scores Recognition with Divide and Conquer 分治法概念的自動樂譜辨識
 
+[hackpad link: Automatic Scores Recognition with Divide and Conquer](https://hackpad.com/Automatic-Scores-Recognition-with-Divide-and-Conquer-6Yjkp8vm3KS)
+
 ## Abstract
 TBC
 
