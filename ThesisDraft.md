@@ -5,6 +5,26 @@
 ## Abstract
 TBC
 
+## Table of Contents
+1. [Introduction](#introduction)
+	- [Motivation](#motivation)
+	- [The Goal](#the-goal)
+	- [System Design](#system-design)
+	- [Divide and Conquer](#devide-and-conquer)
+		- [What is divide and conquer?](#what-is-divide-and-conquer)
+		- [The way dividing and conquering](#the-way-dividing-and-conquering)
+		- [Advantages](#advantages)
+	- [Applications](#applications)
+	- [Design of Dissertation](#design-of-dessertation)
+
+2. [Review of Related Research](#review-of-related-research)
+3. [Technical Background](#technical-background)
+4. [Software Framework](#software-framework)
+5. [Results](#result)
+6. [Conclusions](#conclusions)
+7. [References](#references)
+
+<div id="introduction"/>
 ## 1. Introduction
 ### 1-1. Motivation
 In the era full of high-tech tools, most of tasks can be done by computers: people write articles with computers; people draw diagrams with computers; people, of course, design programs with computers. Among various instances we use computers for, one of them is music composition. For purposes of storing and visualising musicians' creation, the score, which contains lots of music information showing how a piece of melody should be played, has been widely used for hundreds of years. However, the score was designed for human beings rather than computers, most of scores are stored as images, which are just sets of pixels and mean nothing for computers. As a result, a field, namely Optical Music Recognition (OMR), discussing methods for letting computers recognize all stuffs illustrated in an image was emphasised.
@@ -50,6 +70,7 @@ TBC
 ### 1-6. Design of Dissertation
 TBC
 
+<div id="review-of-related-research"/>
 ## 2. Review of Related Research
 ### 2-1. Binarization
 
@@ -75,17 +96,22 @@ In Pinto's research [1], it provides overview and quantitive analysis for scores
 
 ### 2-4. Contextual Reconstruction
 
+<div id="technical-background"/>
 ## 3. Technical Background
 TBC
 
+<div id="software-framework"/>
 ## 4. Software Framework
 TBC
 
+<div id="results"/>
 ## 5. Results
 TBC
 
+<div id="conclusions"/>
 ## 6. Conclusions
 TBC
 
+<div id="references"/>
 ## 7. References
 [1] T. Pinto, A. Rebelo, G. Giraldi, and J. S. Cardoso, *Music Score Binarization Based on Domain Knowledge*. In: Pattern Recognition and Image Analysis - 5th Iberian Conference (IbPRIA), pp. 700–708 (2011)
