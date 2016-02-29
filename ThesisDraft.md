@@ -53,9 +53,27 @@ TBC
 ## 2. Review of Related Research
 ### 2-1. Binarization
 
-### 2-2. Staff Detection
+In recognition of printed scores, it is redundant to consider color vector, namely a 3-D (R/G/B) or 4-D vector (R/G/B/A), and all methods only require gray-scaled images as the input. In addition, an intuitive approach for reducing input space (generally from 0 to 255 for gray-scaled images) proposed by most of related fields is to transform a 8-bit integer to a binary value. In recognition with human brains, people always determine if each pixel is background (white) or foreground (black) in advance, and it is also known as background/foreground classification in the field of page segmentation.
 
-### 2-3. Staff Removal
+In Pinto's research [1], it provides overview and quantitive analysis for scores binarization, and all proposed methods are invented based on different considerations. There are several approach categorized as:
+
+1. global threshold
+
+	Global thrsholding brings advantages of fast computation and simple implementation, it binarizes images by using only one well-tuned value applied to all pixels globally. The threshold is obtained with various aspects:
+	- intensity based by maximizing the variance between classes
+	- entropy based
+	- preservation of edge information
+	- similarity based between raw image and its binarized image
+
+2. local threshold
+
+	Local thresholding is an adaptive approach that considers the inconsistency of intensity when the document is transformed into digital form. A common situation is the digitalization of regions close to the bound of a page in a book, the image might show a gradient-like difference in terms of the average intensity from the region far from the book spine to that close to the book spine. Under the situation, global thresholding might lose some of contents caused by inconsistency of intensity, and local thresholding is consequently suggested for dealing with such variable. Generally, local thresholding is to assigning different threshold at different pixels with their nearby neighbors (local information). In practice, some methods simplify the pixel-wise threshold as column-wise threshold, which is varied only by columns. The implementations of local thresholding contain two steps in common: dividing the image into a couple of blocks such as vertical slices and then figuring out a suitable value respectively.
+
+### 2-2. Segmentation
+
+### 2-3. Recognition
+
+### 2-4. Contextual Reconstruction
 
 ## 3. Technical Background
 TBC
@@ -70,3 +88,4 @@ TBC
 TBC
 
 ## 7. References
+[1] T. Pinto, A. Rebelo, G. Giraldi, and J. S. Cardoso, *Music Score Binarization Based on Domain Knowledge*. In: Pattern Recognition and Image Analysis - 5th Iberian Conference (IbPRIA), pp. 700–708 (2011)
