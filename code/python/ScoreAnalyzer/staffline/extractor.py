@@ -117,7 +117,7 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
 
         # Find adjustment value respectively
         y_adjs = map(lambda proj: round(np.argsort(-proj)[0]), y_projs)
-        y_adjs = np.array(y_adjs) - margin
+        y_adjs = np.array(y_adjs, dtype=int) - margin
         y_idces += y_adjs
 
         # Resegment lines to eliminate
