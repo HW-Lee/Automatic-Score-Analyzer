@@ -1,10 +1,10 @@
 import numpy as np
 from ScoreAnalyzer.runlength.rlcodec import run_length_coding
 
-def staff_tighten(data, staff):
+def staff_tighten(data, staff, bound_thresh):
     # Tighten an image with its stafflines extraction results
     vertproj = np.sum(staff, axis=0)
-    bound_thresh = np.median(vertproj)
+    bound_thresh = np.minimum(np.median(vertproj), bound_thresh)
     idces = np.where(vertproj >= bound_thresh)[0]
     
     if np.sum(idces.shape) == 0: return data
@@ -15,6 +15,16 @@ def is_barline(data, region, info):
     main_region = data[:, region[0]:region[1]]
     
     return np.sum(np.sum(main_region, axis=1) > 0, axis=0) > height*.9
+
+def find_region(array, find):
+    rlc = run_length_coding(array)
+    offset = np.zeros(len(rlc))
+    for x in range(len(rlc)-1): offset[x+1] = offset[x] + rlc[x][1]
+
+    regions = filter(lambda x: x[0][0] == find, zip(rlc, offset))
+    regions = map(lambda x: [int(x[1]), int(x[1]+x[0][1])], regions)
+
+    return regions
 
 def get_barline_positions(data, info):
     c = int(np.floor(data.shape[0] / 2))
@@ -29,13 +39,8 @@ def get_barline_positions(data, info):
         sup = np.minimum(r[1] + x, sample.shape[1])
         feat = run_length_coding(np.sum(sample[:, inf:sup], axis=0) > info["space"])
         if len(feat) == 3 and feat[0][0] == 0: h[(inf+sup)/2] = 1
-    
-    h_rlc = run_length_coding(h)
-    offset = np.zeros(len(h_rlc))
-    for x in range(len(h_rlc)-1): offset[x+1] = offset[x] + h_rlc[x][1]
         
-    regions = filter(lambda x: x[0][0] == 1, zip(h_rlc, offset))
-    regions = map(lambda x: [int(x[1]), int(x[1]+x[0][1])], regions)
+    regions = find_region(h, find=1)
     regions = np.array(filter(lambda region: is_barline(sample, region, info), regions))
     
     return regions
