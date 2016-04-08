@@ -66,7 +66,7 @@ def find_lines_by_RANSAC(data_pts, Niter=1000, in_thresh=.5):
 
     return np.array(samples)
 
-def find_lines_by_centers_RANSAC(centers, min_margin=0.5, max_iter=10, ang_thresh=0.01, NRANSAC=200):
+def find_lines_by_centers_RANSAC(centers, min_margin=0.5, max_iter=10, in_thresh=.5, ang_thresh=0.01, NRANSAC=200):
     # Find lines by Randomly Sampled Consensus
     #
     # Returns:
@@ -89,7 +89,7 @@ def find_lines_by_centers_RANSAC(centers, min_margin=0.5, max_iter=10, ang_thres
     # 6. terminate if there is no result to process
     while iter_count < max_iter:
         iter_count += 1
-        lines = find_lines_by_RANSAC(pts, Niter=NRANSAC)
+        lines = find_lines_by_RANSAC(pts, Niter=NRANSAC, in_thresh=in_thresh)
         lines = sorted(lines, key=lambda x: x[2], reverse=True)
 
         lines = lines[:NRANSAC/10]

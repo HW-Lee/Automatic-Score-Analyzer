@@ -78,7 +78,7 @@ def _filter_staffline_per_line(data, staffline_width):
 
     return data
 
-def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_space=0):
+def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_space=0, num_lines=5):
     # Separate an image of score into staffline-removed part and residual part
     #
     # Returns:
@@ -107,10 +107,13 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
         margin = int(round((staffline_width + staffline_space) / 2.))
 
         # Initial guess
-        y_idces = np.array([-2, -1, 0, 1, 2]) * (staffline_width+staffline_space) + half_h
+        y_idces = np.arange(-(num_lines/2), num_lines/2+1) * (staffline_width+staffline_space) + half_h
 
         # Segment lines to adjust positions
-        horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces)
+        if num_lines > 5:
+            horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces[(num_lines-5)/2:(5-num_lines)/2])
+        else: 
+            horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces)
 
         # Compute y-projection respectively
         y_projs = map(lambda line: np.sum(line, axis=1).flatten(), horizlines)
@@ -118,25 +121,28 @@ def extract_staffline(deskewed_data=np.array([]), staffline_width=0, staffline_s
         # Find adjustment value respectively
         y_adjs = map(lambda proj: round(np.argsort(-proj)[0]), y_projs)
         y_adjs = np.array(y_adjs, dtype=int) - margin
-        y_idces += y_adjs
+        if num_lines > 5: y_idces[(num_lines-5)/2:(5-num_lines)/2] += y_adjs
+        else: y_idces += y_adjs
 
         # Resegment lines to eliminate
         horizlines = map(lambda y: np.array(deskewed_data[y-margin:y+margin, :]), y_idces)
 
         # Filter each line segment
-        width_repeat = [staffline_width] * 5
+        width_repeat = [staffline_width] * len(y_idces)
         horizlines_filterred = map(_filter_staffline_per_line, horizlines, width_repeat)
 
         # Initialize 
         filterred = np.array(deskewed_data)
 
         # Overwrite the original data with processed segments
-        for x in range(5):
+        for x in range(len(y_idces)):
             y = y_idces[x]
             filterred[y-margin:y+margin, :] *= horizlines_filterred[x]
 
         # Do subtraction to obtain residual
         residual = np.array(deskewed_data) - filterred
+
+        if num_lines > 5: y_idces = y_idces[(num_lines-5)/2:(5-num_lines)/2]
 
         return (filterred, residual, y_idces)
     else:

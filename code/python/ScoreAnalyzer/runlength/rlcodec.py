@@ -22,6 +22,16 @@ def run_length_coding(array_data=np.array([])):
     else:
         return np.array([])
 
+def run_length_decode(array_data):
+    array_data = np.array(array_data)
+    if sum(array_data.shape) > 0:
+        output = []
+        for symb, rl in array_data:
+            output += [symb] * rl
+        return np.array(output)
+    else:
+        return np.array([])
+
 def run_length_distribution(data):
     # Aggregate RLC pairs
     hist = Counter(data)
