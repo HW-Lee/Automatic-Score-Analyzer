@@ -19,13 +19,23 @@ def is_barline(data, region, info):
     if len(r) < 2: return False
     return r[-1] - r[1] >= height*.9 and np.sum(np.sum(main_region, axis=1) > 0)
 
-def find_region(array, find):
+def find_region(array, find, merge_thresh=0):
     rlc = run_length_coding(array)
     offset = np.zeros(len(rlc))
     for x in range(len(rlc)-1): offset[x+1] = offset[x] + rlc[x][1]
 
     regions = filter(lambda x: x[0][0] == find, zip(rlc, offset))
     regions = map(lambda x: [int(x[1]), int(x[1]+x[0][1])], regions)
+
+    if merge_thresh > 0:
+        merge_regions = []
+        for r in regions:
+            if len(merge_regions) > 0 and r[0] - merge_regions[-1][1] < merge_thresh:
+                merge_regions[-1][1] = r[1]
+            else:
+                merge_regions += [r]
+
+        regions = merge_regions
 
     return regions
 
@@ -38,12 +48,7 @@ def get_barline_positions(data, info, preprocessing=True):
 
         for i, segment in enumerate(segments):
             h = np.sum(segment, axis=0) > info["width"]
-            ones_regions = []
-            for r in find_region(h, find=1):
-                if len(ones_regions) > 1 and r[0] - ones_regions[-1][1] < (info["width"] + info["space"]) / 3.:
-                    ones_regions[-1][1] = r[1]
-                else:
-                    ones_regions += [r]
+            ones_regions = find_region(h, find=1, merge_thresh=(info["width"]+info["space"])/3.)
 
             ones_regions = filter(lambda x: x[1]-x[0] >= (info["width"] + info["space"]), ones_regions)
             ones_regions = filter(lambda x: x[1]-x[0] <= 2*(info["width"] + info["space"]), ones_regions)
@@ -72,7 +77,7 @@ def get_barline_positions(data, info, preprocessing=True):
     return regions
 
 def segment_by_measures(symb, staff, info):
-    symb_tight = staff_tighten(data=symb, staff=staff)
+    symb_tight = staff_tighten(data=symb, staff=staff, bound_thresh=4*(info["width"]+info["space"]))
     regions = get_barline_positions(data=symb_tight, info=info)
     regions = reduce(lambda x, y: x+y, regions)
     regions = [0] + regions + [symb_tight.shape[1]]
