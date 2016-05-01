@@ -1,2 +1,2 @@
 __author__ = "Hao-Wei Lee"
-__all__ = ["utils", "nhdetector"]
+__all__ = ["utils", "nhdetector", "clefdetector"]
