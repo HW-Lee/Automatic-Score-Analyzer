@@ -23,7 +23,7 @@ def binarize_image(raw_image=np.array([]), thresh=.5, max_value=255., dtype=floa
     else:
         return np.array([])
 
-def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, interp="bilinear"):
+def segment_by_line(data, line_params, margin, bin_thresh=None, derotate=True, interp="bilinear"):
     # Segment a sub-matrix from a matrix with a specific line equation and margin
     # 1. find the y-value of the line corresponded to horizontally center point
     # 2. segment the data with two horizontal lines where the y-values are y += margin, respectively
@@ -48,7 +48,7 @@ def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, inter
     #     is equivallent to rotating matrices clockwisely. Therefore, the ratation angle must not
     #     be added by negative sign.
     data_seg = data[min_y:max_y, :]
-    if deskew:
+    if derotate:
         data_seg = misc.imrotate(data_seg, theta/np.pi * 180., interp=interp)
 
         # Segment the data again
@@ -56,11 +56,11 @@ def segment_by_line(data, line_params, margin, bin_thresh=.5, deskew=True, inter
         data_seg = data_seg[half_h-margin : half_h+margin, :]
 
         # After interpolation step, the image should be binarized again with a specific threshold
-        data_seg = binarize_image(data_seg, thresh=bin_thresh, max_value=np.max(data_seg.flatten()))
+        if bin_thresh != None: data_seg = binarize_image(data_seg, thresh=bin_thresh, max_value=np.max(data_seg.flatten()))
 
     return data_seg
 
-def segment_data(data, lines_params, margin, bin_thresh=.5, deskew=True, interp="bilinear"):
+def segment_data(data, lines_params, margin, bin_thresh=None, derotate=True, interp="bilinear"):
     # Segment the image into a couple of sub-images where each image only contains one de-skewed staffline
     #
     # Returns:
@@ -78,10 +78,10 @@ def segment_data(data, lines_params, margin, bin_thresh=.5, deskew=True, interp=
     data_repeat = [data] * Nstafflines
     margin_repeat = [margin] * Nstafflines
     bin_thresh_repeat = [bin_thresh] * Nstafflines
-    deskew_repeat = [deskew] * Nstafflines
+    derotate_repeat = [derotate] * Nstafflines
     interp_repeat = [interp] * Nstafflines
 
     # Do segment operations with each line parameters
-    segments = map(segment_by_line, data_repeat, lines_params, margin_repeat, bin_thresh_repeat, deskew_repeat, interp_repeat)
+    segments = map(segment_by_line, data_repeat, lines_params, margin_repeat, bin_thresh_repeat, derotate_repeat, interp_repeat)
 
     return segments
