@@ -36,7 +36,7 @@ def _find_staffline_centers(col, width, space):
     results = map(_is_staffline, candidates, [width]*len(candidates), [space]*len(candidates))
     center_idx = np.array([i for i, x in enumerate(results) if x], dtype=int) + 4
 
-    return acc_offset[center_idx] + width/2
+    return (acc_offset[center_idx] + width/2).tolist()
 
 def _is_staffline(arr=np.array([]), width=0, space=0, err_thresh=.7):
     if len(arr) == 9:

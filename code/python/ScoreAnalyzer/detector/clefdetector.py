@@ -49,5 +49,5 @@ class ClefClassifier(object):
             feats = np.array(map(lambda x: ClefFeatureExtractor.get_tiny_image(x, [20, 15]).flatten(), imgs))
             results &= np.array(self.dtr.decision_function(feats) > decision_thresh).flatten()
 
-        if img: return results[0]
+        if img != None: return results[0]
         return results
