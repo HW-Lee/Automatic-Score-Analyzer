@@ -8,10 +8,9 @@ rootpath = os.path.dirname(os.path.abspath(__file__))
 
 class NoteHeadFeatureExtractor(object):
     @staticmethod
-    def get_feat(img, width, info, tighten=False):
-        factor = float(info["width"] + info["space"])
+    def get_feat(img, width, tighten=False):
         img = np.array(img)
-        feat = [img.shape[0]/factor, img.shape[1]/factor]
+        feat = []
         if tighten: img = NoteHeadFeatureExtractor._binimg_tighten(img=img)
         img = misc.imresize(img, [width, width]) / 255.
 
@@ -43,13 +42,12 @@ class NoteHeadFeatureExtractor(object):
         return np.array([n, num-n]).transpose()
 
 class NoteHeadDetector(object):
-    def __init__(self, info, model="notehead20160430-1", decision_thresh=0):
+    def __init__(self, model="notehead20160517-1", decision_thresh=0):
         self.clf = joblib.load("/".join([rootpath, "models", model]) + ".pkl")
         self.decision_thresh = decision_thresh
         self.featwidth = 12
-        self.info = info
 
     def is_notehead(self, img, tighten=False):
         if img.shape[0] / 1.5 > img.shape[1]: return False
-        feat = NoteHeadFeatureExtractor.get_feat(img=img, width=self.featwidth, info=self.info, tighten=tighten)
+        feat = NoteHeadFeatureExtractor.get_feat(img=img, width=self.featwidth, tighten=tighten)
         return self.clf.decision_function([feat])[0] > self.decision_thresh

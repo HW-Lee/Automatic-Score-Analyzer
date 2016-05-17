@@ -44,7 +44,7 @@ def get_barline_positions(data, info, preprocessing=True):
 
     if preprocessing:
         segments = segment_by_pitch(img=data, info=info, pitch_range=9, overlap=.2)
-        nhd = NoteHeadDetector(info=info, decision_thresh=-.5)
+        nhd = NoteHeadDetector(decision_thresh=-.5)
 
         for i, segment in enumerate(segments):
             h = np.sum(segment, axis=0) > info["width"]
