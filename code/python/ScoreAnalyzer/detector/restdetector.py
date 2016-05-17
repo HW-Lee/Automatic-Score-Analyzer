@@ -45,7 +45,7 @@ class RestClassifier(object):
 
         frames = map(lambda r: img[:, r[0]:r[1]], regions)
         feats = map(lambda frame: frame.flatten(), frames)
-        feats = map(lambda feat: feat*1. / np.linalg.norm(feat, ord=2), feats)
+        feats = map(lambda feat: feat*1. / (np.linalg.norm(feat, ord=2)+1), feats)
         feats = np.array(feats)
         template = template.flatten()
         template /= np.linalg.norm(template, ord=2)
