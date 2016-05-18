@@ -59,6 +59,7 @@ def get_barline_positions(data, info, preprocessing=True):
 
     c = int(np.floor(data.shape[0] / 2))
     height = info["width"]*5 + info["space"]*4
+    margin = info["width"] + info["space"]
     sample = data[c-height/2:c+height/2+1, :]
     
     h = np.zeros([sample.shape[1], 1]).flatten()
@@ -67,7 +68,7 @@ def get_barline_positions(data, info, preprocessing=True):
     for x in range(sample.shape[1]-3):
         inf = r[0] + x
         sup = np.minimum(r[1] + x, sample.shape[1])
-        feat = run_length_coding(np.sum(sample[:, inf:sup], axis=0) > info["space"])
+        feat = run_length_coding(np.sum(sample[:, inf:sup], axis=0) > margin)
         if len(feat) == 3 and feat[0][0] == 0: h[(inf+sup)/2] = 1
         
     regions = find_region(h, find=1)
