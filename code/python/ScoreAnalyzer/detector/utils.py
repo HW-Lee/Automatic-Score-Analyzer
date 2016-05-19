@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import misc
 from ScoreAnalyzer.runlength.rlcodec import run_length_coding
 from ScoreAnalyzer.detector.nhdetector import NoteHeadDetector
 
@@ -95,3 +96,34 @@ def segment_by_pitch(img, info, pitch_range=4, overlap=.25, return_regions=False
 
     if return_regions: return (segments, regions)
     else: return segments
+
+def cos_similarity(img, template):
+    img = np.array(img)
+    template = np.array(template)
+
+    scale = template.shape[0]*1./img.shape[0]
+    template = misc.imresize(template, 1./scale) / 255.
+
+    if template.shape[1] > img.shape[1]:
+        zerospad = np.zeros([img.shape[0], template.shape[1]-img.shape[1]])
+        img = np.hstack([img, zerospad])
+
+    padlen = template.shape[1]/4
+    zerospad = np.zeros([img.shape[0], padlen])
+    img = np.hstack([zerospad, img, zerospad])
+    dp_offset = -padlen
+
+    num_frames = img.shape[1]-template.shape[1]+1
+    regions = np.tile([0, template.shape[1]], [num_frames, 1])
+    regions += np.tile(np.arange(num_frames), [2, 1]).T
+
+    frames = map(lambda r: img[:, r[0]:r[1]], regions)
+    feats = map(lambda frame: frame.flatten(), frames)
+    feats = map(lambda feat: feat*1. / (np.linalg.norm(feat, ord=2)+1), feats)
+    feats = np.array(feats)
+    template = template.flatten()
+    template /= np.linalg.norm(template, ord=2)
+
+    starts = np.arange(num_frames)+dp_offset
+    ends = starts + len(template)/img.shape[0]
+    return np.vstack([np.dot(feats, template), starts, ends]).T
