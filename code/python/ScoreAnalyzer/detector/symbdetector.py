@@ -3,17 +3,19 @@ import numpy as np
 from ScoreAnalyzer.detector.clefdetector import ClefClassifier
 from ScoreAnalyzer.detector.nhdetector import NoteHeadDetector
 from ScoreAnalyzer.detector.restdetector import RestClassifier
+from ScoreAnalyzer.detector.accdtaldetector import AccidentalClassifier
 from ScoreAnalyzer.detector.utils import find_region, segment_by_pitch
 
 rootpath = os.path.dirname(os.path.abspath(__file__))
 
 class SymbolDetector(object):
-    def __init__(self, stfwidth=None, stfspace=None, clefclf=None, nhdtr=None, restclf=None):
+    def __init__(self, stfwidth=None, stfspace=None, clefclf=None, nhdtr=None, restclf=None, accdtclf=None):
         self.stfwidth = stfwidth
         self.stfspace = stfspace
         self.clefclf = ClefClassifier() if clefclf is None else clefclf
         self.nhdtr = NoteHeadDetector() if nhdtr is None else nhdtr
         self.restclf = RestClassifier() if restclf is None else restclf
+        self.accdtclf = AccidentalClassifier() if accdtclf is None else accdtclf
 
     def _profile(self, img, stfwidth, stfspace):
         return img.shape[0]/2, stfwidth+stfspace
@@ -57,3 +59,19 @@ class SymbolDetector(object):
         matchedlist = filter(lambda x: np.sum(x.shape) > 0, matchedlist)
         if len(matchedlist) == 0: return np.array([])
         return reduce(lambda x, y: np.vstack([x, y]), matchedlist)
+
+    def find_accidentals(self, img, stfwidth=None, stfspace=None, pitch_range=8):
+        img = np.array(img)
+        if stfwidth is None: stfwidth = self.stfwidth
+        if stfspace is None: stfspace = self.stfspace
+        c, margin = self._profile(img, stfwidth, stfspace)
+
+        positions = np.arange(-pitch_range, pitch_range+1)[::-1]
+        pitch_imgs = segment_by_pitch(img, {"width": stfwidth, "space": stfspace}, pitch_range=pitch_range, overlap=1)
+        pitch_matcheds = self.accdtclf.find_matched(pitch_imgs, eliminate_empty=True)
+        pitch_matcheds =  dict(zip(positions, pitch_matcheds))
+        for position in positions:
+            if len(pitch_matcheds[position].keys()) == 0:
+                pitch_matcheds.pop(position, None)
+
+        return pitch_matcheds
