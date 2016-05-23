@@ -9,6 +9,24 @@ from ScoreAnalyzer.detector.utils import find_region, segment_by_pitch
 rootpath = os.path.dirname(os.path.abspath(__file__))
 
 class SymbolDetector(object):
+    SYMBOLS = [
+        "treble",
+        "bass",
+        "flat",
+        "sharp",
+        "natural",
+        "rest01",
+        "rest02",
+        "rest04",
+        "rest08",
+        "rest16",
+        "rest32",
+        "rest64"
+    ]
+
+    SYMB_TO_SYMBID = dict(zip(SYMBOLS, np.arange(len(SYMBOLS))+1))
+    SYMBID_TO_SYMB = dict(zip(np.arange(len(SYMBOLS))+1, SYMBOLS))
+
     def __init__(self, stfwidth=None, stfspace=None, clefclf=None, nhdtr=None, restclf=None, accdtclf=None):
         self.stfwidth = stfwidth
         self.stfspace = stfspace
@@ -34,7 +52,16 @@ class SymbolDetector(object):
         rs = filter(lambda r: self.clefclf.is_clef(img=img[c-2*margin:c+2*margin, r[0]:r[1]]), rs)
         rs = map(lambda r: np.hstack([r, self.clefclf.predict_clef(img=img[c-2*margin:c+2*margin, r[0]:r[1]])]), rs)
 
-        return np.array(rs)
+        trebles = np.array([row[:2] for row in rs if row[2]==0])
+        basses = np.array([row[:2] for row in rs if row[2]==1])
+        matched = {"treble": trebles, "bass": basses}
+        for clefname in matched.keys():
+            if matched[clefname].shape[0] == 0: matched.pop(clefname, None)
+
+        matched["y-center"] = c
+        matched["margin"] = margin
+
+        return matched
 
     def find_rests(self, img, stfwidth=None, stfspace=None):
         img = np.array(img)
@@ -57,8 +84,17 @@ class SymbolDetector(object):
             matchedlist[i] = reduce(lambda x, y: np.vstack([x, y]), matched.values())
 
         matchedlist = filter(lambda x: np.sum(x.shape) > 0, matchedlist)
-        if len(matchedlist) == 0: return np.array([])
-        return reduce(lambda x, y: np.vstack([x, y]), matchedlist)
+        if len(matchedlist) == 0: matchedlist = np.array([])
+        else: matchedlist = reduce(lambda x, y: np.vstack([x, y]), matchedlist)
+        matched = {}
+        for restid in self.restclf.decision_thresh.keys():
+            matched["rest{:02d}".format(restid)] = np.array([row[1:] for row in matchedlist if row[0]==restid])
+            if matched["rest{:02d}".format(restid)].shape[0] == 0: matched.pop("rest{:02d}".format(restid), None)
+
+        matched["y-center"] = c
+        matched["margin"] = margin
+
+        return matched
 
     def find_accidentals(self, img, stfwidth=None, stfspace=None, pitch_range=8):
         img = np.array(img)
@@ -73,5 +109,8 @@ class SymbolDetector(object):
         for position in positions:
             if len(pitch_matcheds[position].keys()) == 0:
                 pitch_matcheds.pop(position, None)
+
+        pitch_matcheds["y-center"] = c
+        pitch_matcheds["margin"] = margin
 
         return pitch_matcheds
