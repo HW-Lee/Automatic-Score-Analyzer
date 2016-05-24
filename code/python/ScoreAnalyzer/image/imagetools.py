@@ -1,13 +1,14 @@
 import numpy as np
 from scipy import misc
 
-def load(path, thresh=.5, reverse=True):
+def load(path, thresh=.5, reverse=True, scale=None):
     # Load an image with binarization
     # reverse:
     #   - T, blackset refers to active set
     #   - F, whiteset refers to active set
 
     image = misc.imread(name=path, flatten=True)
+    if scale != None: image = misc.imresize(image, scale)
     if reverse: image = abs(image - 255.)
     return binarize_image(raw_image=image, thresh=thresh, dtype=float)
 
