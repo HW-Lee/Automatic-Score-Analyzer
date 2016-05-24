@@ -18,7 +18,7 @@ def is_barline(data, region, info):
     
     r = np.where((np.sum(main_region, axis=1) > 0) == True)[0]
     if len(r) < 2: return False
-    return r[-1] - r[1] >= height*.9 and np.sum(np.sum(main_region, axis=1) > 0)
+    return r[-1] - r[1] >= height*.9 and np.mean(np.sum(main_region, axis=1) > 0) > .7
 
 def find_region(array, find, merge_thresh=0):
     rlc = run_length_coding(array)
@@ -64,7 +64,7 @@ def get_barline_positions(data, info, preprocessing=True):
     sample = data[c-height/2:c+height/2+1, :]
     
     h = np.zeros([sample.shape[1], 1]).flatten()
-    r = [0, 2*info["width"] + info["space"]]
+    r = [0, int(round(margin*.7))]
     
     for x in range(sample.shape[1]-3):
         inf = r[0] + x
@@ -92,6 +92,13 @@ def segment_by_pitch(img, info, pitch_range=4, overlap=.25, return_regions=False
     margin = info["width"] + info["space"]
     regions = np.reshape(range(-pitch_range, pitch_range+1), [2*pitch_range+1, 1]) * margin/2 + c
     regions = np.tile(regions, [1, 2]) + np.tile(np.array([-1, 1]) * int((margin*(.5 + overlap))), regions.shape)
+    if regions[0, 0] < 0:
+        padlen = -regions[0, 0] + margin
+        zpad = np.zeros([padlen, img.shape[1]])
+        img = np.vstack([zpad, img, zpad])
+        regions += padlen
+        c = img.shape[0] / 2
+
     segments = map(lambda r: np.array(img[r[0]:r[1]+1, :]), regions)
 
     if return_regions: return (segments, regions)
@@ -101,8 +108,9 @@ def cos_similarity(img, template):
     img = np.array(img)
     template = np.array(template)
 
-    scale = template.shape[0]*1./img.shape[0]
-    template = misc.imresize(template, 1./scale) / 255.
+    scale = img.shape[0]*1./template.shape[0]
+    img_w = int(round(template.shape[1] * scale))
+    template = misc.imresize(template, [img.shape[0], img_w]) / 255.
 
     if template.shape[1] > img.shape[1]:
         zerospad = np.zeros([img.shape[0], template.shape[1]-img.shape[1]])
