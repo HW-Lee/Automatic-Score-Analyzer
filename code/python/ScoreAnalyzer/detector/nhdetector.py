@@ -48,6 +48,10 @@ class NoteHeadDetector(object):
         self.featwidth = 12
 
     def is_notehead(self, img, tighten=False):
-        if img.shape[0] / 1.5 > img.shape[1]: return False
+        if img.shape[0]/1.5 > img.shape[1] or img.shape[1]/1.5 > img.shape[0]: return False
+        return self.eval_conf(img=img, tighten=tighten) > self.decision_thresh
+
+    def eval_conf(self, img, tighten=False):
+        if img.shape[0]/1.5 > img.shape[1] or img.shape[1]/1.5 > img.shape[0]: return -1
         feat = NoteHeadFeatureExtractor.get_feat(img=img, width=self.featwidth, tighten=tighten)
-        return self.clf.decision_function([feat])[0] > self.decision_thresh
+        return self.clf.decision_function([feat])[0][0]
