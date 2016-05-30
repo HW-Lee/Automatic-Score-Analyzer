@@ -135,3 +135,7 @@ def cos_similarity(img, template):
     starts = np.arange(num_frames)+dp_offset
     ends = starts + len(template)/img.shape[0]
     return np.vstack([np.dot(feats, template), starts, ends]).T
+
+def ypos_to_pitch_number(ypos, yc, margin):
+    pitch_numberf = (yc-ypos) / (margin/2.)
+    return int(round(pitch_numberf))

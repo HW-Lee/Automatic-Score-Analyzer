@@ -1,4 +1,3 @@
-import os
 import numpy as np
 from copy import deepcopy
 from ScoreAnalyzer.detector.clefdetector import ClefClassifier
@@ -6,8 +5,6 @@ from ScoreAnalyzer.detector.nhdetector import NoteHeadDetector, NoteHeadFeatureE
 from ScoreAnalyzer.detector.restdetector import RestClassifier
 from ScoreAnalyzer.detector.accdtaldetector import AccidentalClassifier
 from ScoreAnalyzer.detector.utils import find_region, segment_by_pitch
-
-rootpath = os.path.dirname(os.path.abspath(__file__))
 
 class SymbolDetector(object):
     SYMBOLS = [
@@ -94,12 +91,12 @@ class SymbolDetector(object):
 
         return mat
 
-    def detect(self, img, stfwidth=None, stfspace=None, filterfunc=None):
+    def detect(self, img, stfwidth=None, stfspace=None, detect_clef=True, detect_rest=True, detect_acc=True, detect_nh=True, filterfunc=None):
         img = np.array(img)
-        clef_matched = self.find_clefs(img, stfwidth, stfspace)
-        rest_matched = self.find_rests(img, stfwidth, stfspace)
-        acc_matched = self.find_accidentals(img, stfwidth, stfspace)
-        notehead_matched = self.find_noteheads(img, clef_matched, None, acc_matched)
+        clef_matched = self.find_clefs(img, stfwidth, stfspace) if detect_clef else None
+        rest_matched = self.find_rests(img, stfwidth, stfspace) if detect_rest else None
+        acc_matched = self.find_accidentals(img, stfwidth, stfspace) if detect_acc else None
+        notehead_matched = self.find_noteheads(img, clef_matched, None, acc_matched) if detect_nh else None
         tags = SymbolDetector.to_matrix(clef_matched=clef_matched, rest_matched=rest_matched, 
                                         acc_matched=acc_matched, notehead_matched=notehead_matched)
         if filterfunc != None: tags = filterfunc(tags)
@@ -192,9 +189,6 @@ class SymbolDetector(object):
         positions = np.arange(-pitch_range, pitch_range+1)[::-1]
         pitch_imgs = segment_by_pitch(img, {"width": stfwidth, "space": stfspace}, pitch_range=pitch_range, overlap=.25)
         pitch_matcheds = {"y-center": c, "margin": margin}
-        
-        def find_feat_peak(img):
-            return 1 - abs(11-np.argmax(NoteHeadFeatureExtractor.get_feat(img, 12))) / 11.
             
         for position, pitch_img in zip(positions, pitch_imgs):
             pitch_c, _ = self._profile(pitch_img, 0, 0)
@@ -203,10 +197,10 @@ class SymbolDetector(object):
             confs = map(lambda r: self.nhdtr.eval_conf(pitch_img[:, r[0]:r[1]]), rs)
             matched = filter(lambda conf: conf[0] > 0, np.vstack([confs, np.array(rs).T]).T)
             if len(matched) == 0: continue
-            
+
             pitch_matcheds[position] = {
-                "nh-s": np.array([r for r in np.array(matched) if find_feat_peak(pitch_img[:, r[1]:r[2]]) > .9]),
-                "nh-h": np.array([r for r in np.array(matched) if find_feat_peak(pitch_img[:, r[1]:r[2]]) < .9])
+                "nh-s": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-s"]),
+                "nh-h": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-h"])
             }
             for nhname in pitch_matcheds[position].keys():
                 if pitch_matcheds[position][nhname].shape[0] == 0: pitch_matcheds[position].pop(nhname, None)
