@@ -4,7 +4,9 @@ from ScoreAnalyzer.detector.clefdetector import ClefClassifier
 from ScoreAnalyzer.detector.nhdetector import NoteHeadDetector, NoteHeadFeatureExtractor
 from ScoreAnalyzer.detector.restdetector import RestClassifier
 from ScoreAnalyzer.detector.accdtaldetector import AccidentalClassifier
-from ScoreAnalyzer.detector.utils import find_region, segment_by_pitch
+from ScoreAnalyzer.detector.stemdetector import StemDetector
+from ScoreAnalyzer.detector.beamgrouper import BeamGrouper
+from ScoreAnalyzer.detector.utils import find_region, segment_by_pitch, ypos_to_pitch_number
 
 class SymbolDetector(object):
     SYMBOLS = [
@@ -206,3 +208,81 @@ class SymbolDetector(object):
                 if pitch_matcheds[position][nhname].shape[0] == 0: pitch_matcheds[position].pop(nhname, None)
 
         return pitch_matcheds
+
+    def find_stems(self, img, clef_matched=None, stfwidth=None, stfspace=None):
+        img = np.array(img)
+        if stfwidth is None: stfwidth = self.stfwidth
+        if stfspace is None: stfspace = self.stfspace
+        c, margin = self._profile(img, stfwidth, stfspace)
+
+        if clef_matched != None:
+            matched_mat = SymbolDetector.to_matrix(clef_matched=clef_matched)
+            if matched_mat.shape[0] > 0:
+                for symbid, conf, minx, maxx, miny, maxy in matched_mat: img[miny:maxy, minx:maxx] = 0
+
+        stems = StemDetector(stfwidth=stfwidth, stfspace=stfspace).find_stems(img)[0]
+        return BeamGrouper(img=img, stems=stems, stfwidth=stfwidth, stfspace=stfspace)
+
+    def find_noteheads_stem_guilded(self, img, beamgroup=None, clef_matched=None, stfwidth=None, stfspace=None):
+        img = np.array(img)
+        if stfwidth is None: stfwidth = self.stfwidth
+        if stfspace is None: stfspace = self.stfspace
+        if beamgroup is None: beamgroup = self.find_stems(img, clef_matched, stfwidth, stfspace)
+        c, margin = self._profile(img, stfwidth, stfspace)
+        bg = beamgroup
+
+        for minid, maxid, updown in bg.beams:
+            xx = np.arange(bg.stems[minid][0], bg.stems[maxid][0]+1)
+            yy = np.array(np.round(np.linspace(bg.stems[minid][updown+2], bg.stems[maxid][updown+2], len(xx))), dtype=int)
+            for x, y in zip(xx, yy):
+                img[y-margin:y+margin, x] = 0
+
+        def get_rect(minx, maxx, pn):
+            rect = np.array([[minx, c-pn*margin/2-margin*.75], [maxx, c-pn*margin/2+margin*.75]])
+            return img[rect[0, 1]:rect[1, 1], rect[0, 0]:rect[1, 0]], rect
+
+        pitch_matcheds = {}
+        for i, stem in enumerate(bg.stems):
+            minx, maxx, miny, maxy = stem
+            pu = ypos_to_pitch_number(miny, c, margin)
+            pd = ypos_to_pitch_number(maxy, c, margin)
+            
+            if bg.beamtype_list[i] != 0:
+                nhimgs = [nhimg for nhimg, rect in map(lambda x: get_rect(minx, maxx+margin*1.2, x), range(pu-1, pu+2))]
+                pu += np.argmax(map(lambda x: self.nhdtr.eval_conf(x), nhimgs))-1
+                nhimg, rect = get_rect(minx, maxx+margin*1.2, pu)
+                xr = rect[:, 0]
+                if self.nhdtr.is_notehead(nhimg):
+                    bg.stemnote_founded[i] = True
+                    t = self.nhdtr.get_type(nhimg)
+                    if not pu in pitch_matcheds.keys():
+                        pitch_matcheds[pu] = {t: np.array([[self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])}
+                    else:
+                        if not t in pitch_matcheds[pu]:
+                            pitch_matcheds[pu][t] = np.array([[self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])
+                        else:
+                            mat = pitch_matcheds[pu][t]
+                            pitch_matcheds[pu][t] = np.vstack([mat, [self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])
+
+            if bg.beamtype_list[i] != 1:
+                nhimgs = [nhimg for nhimg, rect in map(lambda x: get_rect(minx-margin*1.2, maxx, x), range(pd-1, pd+2))]
+                pd += np.argmax(map(lambda x: self.nhdtr.eval_conf(x), nhimgs))-1
+                nhimg, rect = get_rect(minx-margin*1.2, maxx, pd)
+                xr = rect[:, 0]
+                if self.nhdtr.is_notehead(nhimg):
+                    bg.stemnote_founded[i] = True
+                    t = self.nhdtr.get_type(nhimg)
+                    if not pd in pitch_matcheds.keys():
+                        pitch_matcheds[pd] = {t: np.array([[self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])}
+                    else:
+                        if not t in pitch_matcheds[pd]:
+                            pitch_matcheds[pd][t] = np.array([[self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])
+                        else:
+                            mat = pitch_matcheds[pd][t]
+                            pitch_matcheds[pd][t] = np.vstack([mat, [self.nhdtr.eval_conf(nhimg), xr[0], xr[1]]])
+
+        pitch_matcheds["y-center"] = c
+        pitch_matcheds["margin"] = margin
+
+        return pitch_matcheds
+

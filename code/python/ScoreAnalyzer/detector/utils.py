@@ -139,3 +139,18 @@ def cos_similarity(img, template):
 def ypos_to_pitch_number(ypos, yc, margin):
     pitch_numberf = (yc-ypos) / (margin/2.)
     return int(round(pitch_numberf))
+
+def projection(img, pts, yrange):
+    img = np.array(img)
+    zpad = np.zeros([yrange, img.shape[1]])
+    img = np.vstack([zpad, img, zpad])
+    pt1, pt2 = pts
+    yy = np.linspace(pt1[1], pt2[1], pt2[0]-pt1[0]+1)
+    yy = np.array(np.round(yy), dtype=int)
+    yy += yrange
+    
+    proj_img = map(lambda ye: img[ye[1]-yrange:ye[1]+yrange+1, ye[0]+pt1[0]], enumerate(yy))
+    proj_img = filter(lambda x: len(x) > 0, proj_img)
+    if len(proj_img) == 0: return np.array([])
+    proj_img = reduce(lambda x, y: np.vstack([x, y]), proj_img).T
+    return np.sum(proj_img, axis=1)
