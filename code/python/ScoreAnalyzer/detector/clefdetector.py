@@ -19,12 +19,15 @@ class ClefFeatureExtractor(object):
         return [aspect_ratio] + horiz_proj + vert_proj + horiz_centroid + vert_centroid
 
     @staticmethod
-    def get_tiny_image(img, size):
+    def get_tiny_image(img, size, centralized=True):
         img = np.array(img)
         aspect_ratio = img.shape[1] * 1. / img.shape[0]
         ref_aspect_ratio = size[1] * 1. / size[0]
 
-        return misc.imresize(img, size) * np.min([1., aspect_ratio / ref_aspect_ratio]) / 255. * 2 - 1
+        if centralized:
+            return (misc.imresize(img, size) / 255. * 2 - 1) * np.min([1., aspect_ratio / ref_aspect_ratio])
+        else:
+            return (misc.imresize(img, size) / 255.) * np.min([1., aspect_ratio / ref_aspect_ratio])
 
 class ClefClassifier(object):
     def __init__(self, model=["clef_clf20160430-1", "clef_dtr20160430-1"]):
