@@ -140,7 +140,7 @@ def ypos_to_pitch_number(ypos, yc, margin):
     pitch_numberf = (yc-ypos) / (margin/2.)
     return int(round(pitch_numberf))
 
-def projection(img, pts, yrange):
+def line_integral(img, pts, yrange):
     img = np.array(img)
     zpad = np.zeros([yrange, img.shape[1]])
     img = np.vstack([zpad, img, zpad])

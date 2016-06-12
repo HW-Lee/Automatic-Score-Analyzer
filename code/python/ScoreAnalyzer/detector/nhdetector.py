@@ -8,12 +8,15 @@ rootpath = os.path.dirname(os.path.abspath(__file__))
 
 class NoteHeadFeatureExtractor(object):
     @staticmethod
-    def get_tiny_image(img, size):
+    def get_tiny_image(img, size, centralized=True):
         img = np.array(img)
         aspect_ratio = img.shape[1] * 1. / img.shape[0]
         ref_aspect_ratio = size[1] * 1. / size[0]
 
-        return misc.imresize(img, size) * np.min([1., aspect_ratio / ref_aspect_ratio]) / 255. * 2 - 1
+        if centralized:
+            return (misc.imresize(img, size) / 255. * 2 - 1) * np.min([1., aspect_ratio / ref_aspect_ratio])
+        else:
+            return (misc.imresize(img, size) / 255.) * np.min([1., aspect_ratio / ref_aspect_ratio])
 
     @staticmethod
     def get_feat(img, width, tighten=False):

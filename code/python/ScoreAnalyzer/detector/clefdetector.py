@@ -30,7 +30,7 @@ class ClefFeatureExtractor(object):
             return (misc.imresize(img, size) / 255.) * np.min([1., aspect_ratio / ref_aspect_ratio])
 
 class ClefClassifier(object):
-    def __init__(self, model=["clef_clf20160430-1", "clef_dtr20160430-1"]):
+    def __init__(self, model=["clef_clf20160613-1", "clef_dtr20160613-1"]):
         self.clf = joblib.load("{}/models/{}.pkl".format(rootpath, model[0]))
         self.dtr = joblib.load("{}/models/{}.pkl".format(rootpath, model[1]))
 

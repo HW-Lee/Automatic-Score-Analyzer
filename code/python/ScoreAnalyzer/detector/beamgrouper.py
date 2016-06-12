@@ -1,5 +1,5 @@
 import numpy as np
-from ScoreAnalyzer.detector.utils import find_region, projection
+from ScoreAnalyzer.detector.utils import find_region, line_integral
 
 class BeamGrouper(object):
     def __init__(self, img, stems, stfwidth=None, stfspace=None, info=None):
@@ -29,7 +29,7 @@ class BeamGrouper(object):
                     if self.stems[j][0] - self.stems[i][0] < 2*margin: continue
                     pt1 = [self.stems[i][0], self.stems[i][k+2]]
                     pt2 = [self.stems[j][0], self.stems[j][k+2]]
-                    proj = projection(img, [pt1, pt2], yrange=margin*2)
+                    proj = line_integral(img, [pt1, pt2], yrange=margin*2)
                     onset_regions = find_region(proj > (pt2[0]-pt1[0]+1)*.9, find=1, merge_thresh=0)
                     if len(onset_regions) > 0 and reduce(lambda x, y: x | y, map(lambda r: r[1]-r[0] > margin*.2, onset_regions)):
                         beams_segments.append([i, j, k])
