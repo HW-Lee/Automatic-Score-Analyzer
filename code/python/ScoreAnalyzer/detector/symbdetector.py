@@ -22,8 +22,8 @@ class SymbolDetector(object):
         "rest16",
         "rest32",
         "rest64",
-        "nh-s",
-        "nh-h"
+        "nh-b",
+        "nh-w"
     ]
 
     SYMB_TO_SYMBID = dict(zip(SYMBOLS, np.arange(len(SYMBOLS))+1))
@@ -201,8 +201,8 @@ class SymbolDetector(object):
             if len(matched) == 0: continue
 
             pitch_matcheds[position] = {
-                "nh-s": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-s"]),
-                "nh-h": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-h"])
+                "nh-b": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-b"]),
+                "nh-w": np.array([r for r in np.array(matched) if self.nhdtr.get_type(pitch_img[:, r[1]:r[2]]) == "nh-w"])
             }
             for nhname in pitch_matcheds[position].keys():
                 if pitch_matcheds[position][nhname].shape[0] == 0: pitch_matcheds[position].pop(nhname, None)
@@ -223,7 +223,7 @@ class SymbolDetector(object):
         stems = StemDetector(stfwidth=stfwidth, stfspace=stfspace).find_stems(img)[0]
         return BeamGrouper(img=img, stems=stems, stfwidth=stfwidth, stfspace=stfspace)
 
-    def find_noteheads_stem_guilded(self, img, beamgroup=None, clef_matched=None, stfwidth=None, stfspace=None):
+    def find_noteheads_stem_guided(self, img, beamgroup=None, clef_matched=None, stfwidth=None, stfspace=None):
         img = np.array(img)
         if stfwidth is None: stfwidth = self.stfwidth
         if stfspace is None: stfspace = self.stfspace

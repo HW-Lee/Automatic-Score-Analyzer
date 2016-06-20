@@ -73,5 +73,5 @@ class NoteHeadDetector(object):
         return self.clf.decision_function([feat])[0][0]
 
     def get_type(self, img, tighten=False):
-        if self.typeclf.predict([NoteHeadFeatureExtractor.get_tiny_image(img, [12, 16]).flatten()])[0] == 0: return "nh-h"
-        else: return "nh-s"
+        if self.typeclf.predict([NoteHeadFeatureExtractor.get_tiny_image(img, [12, 16]).flatten()])[0] == 0: return "nh-w"
+        else: return "nh-b"
