@@ -5,6 +5,7 @@ from ScoreAnalyzer.detector.nhdetector import NoteHeadDetector
 
 def staff_tighten(data, staff, bound_thresh):
     # Tighten an image with its stafflines extraction results
+    data = np.array(data)
     vertproj = np.sum(staff, axis=0)
     bound_thresh = np.minimum(np.median(vertproj), bound_thresh)
     idces = np.where(vertproj >= bound_thresh)[0]
